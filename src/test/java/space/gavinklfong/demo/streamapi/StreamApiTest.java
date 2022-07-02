@@ -93,14 +93,19 @@ class StreamApiTest {
 	@DisplayName("Obtain a list of order with product category = \"Baby\"")
 	void exercise2() {
 		//code the challenge
-		List<Product> ordersMapped = orderRepo.findAll()
+		List<Order> ordersMapped = orderRepo.findAll()
 				.stream()
-				.map(order -> order.getProducts()
+				.filter(order -> order.getProducts()
 						.stream()
-						.filter(product -> product.getCategory().equals("Baby")))
-						.collect(Collectors.toList())
-
+						.anyMatch(product -> product.getCategory().equals("Baby")))
+				.collect(Collectors.toList());
 		ordersMapped.forEach(order ->log.info("Testing product: {}", order.toString()));
+
+		Assertions.assertEquals(26,ordersMapped.size());
+		ordersMapped.forEach(order -> order.getProducts()
+				.forEach(product -> {}
+				)
+		);
 	}
 
 	@Test
