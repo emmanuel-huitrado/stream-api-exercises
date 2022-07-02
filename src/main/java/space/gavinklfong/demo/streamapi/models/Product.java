@@ -40,5 +40,4 @@ public class Product {
 	@ToString.Exclude
 	@EqualsAndHashCode.Exclude
 	private Set<Order> orders;
-	
 }

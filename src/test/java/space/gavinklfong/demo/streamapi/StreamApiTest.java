@@ -1,14 +1,21 @@
 package space.gavinklfong.demo.streamapi;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 import lombok.extern.slf4j.Slf4j;
+import space.gavinklfong.demo.streamapi.models.Order;
+import space.gavinklfong.demo.streamapi.models.Product;
 import space.gavinklfong.demo.streamapi.repos.CustomerRepo;
 import space.gavinklfong.demo.streamapi.repos.OrderRepo;
 import space.gavinklfong.demo.streamapi.repos.ProductRepo;
+
+import java.util.List;
+import java.util.function.BiPredicate;
+import java.util.stream.Collectors;
 
 @Slf4j
 @DataJpaTest
@@ -25,27 +32,75 @@ class StreamApiTest {
 
 	@Test
 	@DisplayName("Obtain a list of product with category = \"Books\" and price > 100")
-	public void exercise1() {
-		//code the challenge
+	void exercise1() {
+		List<Product> booksWithCostHigherThan100 = productRepo.findAll()
+			.stream()
+				.filter(book -> {
+					return book.getCategory().equals("Books") && book.getPrice() > 100;
+				}
+				).collect(Collectors.toList());
+
+		//Asserts:
+		Assertions.assertEquals(5, booksWithCostHigherThan100.size());
+		booksWithCostHigherThan100.forEach(book -> {
+			log.info("Testing product: {}", book.toString());
+			Assertions.assertEquals(Boolean.TRUE, book.getPrice() > 100); // bigger than 100
+			Assertions.assertEquals(Boolean.TRUE, book.getCategory().equals("Books")); // category = Books
+		});
 	}
 
 	@Test
 	@DisplayName("Obtain a list of product with category = \"Books\" and price > 100 (using Predicate chaining for filter)")
-	public void exercise1a() {
+	void exercise1a() {
 		//code the challenge
+		List<Product> booksWithCostHigherThan100 = productRepo.findAll()
+			.stream()
+				.filter(product -> product.getCategory().equalsIgnoreCase("Books"))
+				.filter(book -> book.getPrice() > 100)
+				.collect(Collectors.toList());
+
+		//Asserts:
+		Assertions.assertEquals(5, booksWithCostHigherThan100.size());
+		booksWithCostHigherThan100.forEach(book -> {
+			log.info("Testing product: {}", book.toString());
+			Assertions.assertEquals(Boolean.TRUE, book.getPrice() > 100); // bigger than 100
+			Assertions.assertEquals(Boolean.TRUE, book.getCategory().equals("Books")); // category = Books
+		});
 	}
 
 	@Test
 	@DisplayName("Obtain a list of product with category = \"Books\" and price > 100 (using BiPredicate for filter)")
-	public void exercise1b() {
+	void exercise1b() {
 		//code the challenge
+		BiPredicate<Product,String> checkCategory = (product,category) -> product.getCategory().equalsIgnoreCase(category);
+		BiPredicate<Product,Integer> checkPrice = (product,price) -> product.getPrice() > price;
+		List<Product> booksWithCostHigherThan100 = productRepo.findAll()
+			.stream()
+				.filter(product -> checkCategory.test(product,"Books")
+						&& checkPrice.test(product,100))
+				.collect(Collectors.toList());
+
+		//Asserts:
+		Assertions.assertEquals(5, booksWithCostHigherThan100.size());
+		booksWithCostHigherThan100.forEach(book -> {
+			log.info("Testing product: {}", book.toString());
+			Assertions.assertEquals(Boolean.TRUE, book.getPrice() > 100); // bigger than 100
+			Assertions.assertEquals(Boolean.TRUE, book.getCategory().equals("Books")); // category = Books
+		});
 	}
 
 	@Test
 	@DisplayName("Obtain a list of order with product category = \"Baby\"")
-	public void exercise2() {
+	void exercise2() {
 		//code the challenge
+		List<Product> ordersMapped = orderRepo.findAll()
+				.stream()
+				.map(order -> order.getProducts()
+						.stream()
+						.filter(product -> product.getCategory().equals("Baby")))
+						.collect(Collectors.toList())
 
+		ordersMapped.forEach(order ->log.info("Testing product: {}", order.toString()));
 	}
 
 	@Test
